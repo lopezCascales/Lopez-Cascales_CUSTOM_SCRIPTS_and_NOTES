@@ -1,3 +1,4 @@
+
 library(Matrix)
 readLines("matrix.mtx")
 
@@ -52,3 +53,51 @@ colSums(mat)
 head(mat)
 df <- as.data.frame(as.matrix(mat))
 write.csv(df,"TranscriptCounts.csv")
+
+tmat <- t(mat)
+dfmat <- as.data.frame(as.matrix(tmat))
+dfmat$barcodes <- rownames(dfmat)
+ourbarcodes <- read.csv("SORTseq_cellbarcodes.tsv", sep='\t')
+
+ourbarcodes$barcodes <- ourbarcodes$barcodes
+merge <- merge(dfmat, ourbarcodes, by='barcodes', sort=F, all.x=T)
+
+head(merge)
+
+#         AW146154 Gm6871 2610021A01Rik Zfp788 Vmn2r58 Vmn2r59 Vmn2r60 Vmn2r61
+#AAAGCGGA        0      0             0      0       0       0       0       0
+#AAAGGCTG        0      0             1      0       0       0       0       0
+#AACACGCA        0      0             0      0       0       0       0       0
+#         4933421I07Rik Zfp141 Gm44997 Gm21028 Zfp977 Zfp976 Zfp975 Gm17067
+#AAAGCGGA             0      3       0       0      0      0      0       0
+#AAAGGCTG             0      0       0       0      0      0      0       0
+#AACACGCA             0      0       0       0      0      0      0       0
+#         Vmn2r62 Gm2381 Vmn2r63 Vmn2r126 Gm17768 Zfp936 EU599041 Zfp715 Siglecf
+#AAAGCGGA       0      0       0        0       0      0        0      0       0
+#AAAGGCTG       0      0       0        0       0      0        0      0       0
+#AACACGCA       0      0       0        0       0      0        0      0       0
+#
+#....
+#         ERCC-00158 ERCC-00160 ERCC-00162 ERCC-00163 ERCC-00164 ERCC-00165
+#AAAGCGGA          0          0          0          0          0          0
+#AAAGGCTG          0          0          0          0          0          0
+#AACACGCA          0          0          0          0          0          0
+#         ERCC-00168 ERCC-00170 ERCC-00171 Tdtomato  V1  V2       V3
+#AAAGCGGA          0          0       5.00        0 P12 372 AAAGCGGA
+#AAAGGCTG          0          0       5.00        0 O10 346 AAAGGCTG
+#AACACGCA          0          0       8.01        1 L20 284 AACACGCA
+
+
+write.csv(merge, "dfmat.csv")
+rownames(merge) <- merge$barcodes
+
+merge2 <- merge[order(merge$order),]
+
+
+matrix <- as.matrix(merge2)
+matrix <- as.matrix(merge2)
+tmatrix <- t(matrix)
+df2 <- as.data.frame(as.matrix(tmatrix))
+write.csv(df2,"FinalTranscriptCounts.csv")
+
+############################################################################################
