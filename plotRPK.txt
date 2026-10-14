@@ -1,0 +1,16 @@
+Shows a single chart, for each gene, comparing Gene Expression Ratio (Sample vs Universal Human Reference) vs Gene Expression (Log2(RPKM + 0.1)). A value of 0.1 has been added to every RPKM value in order to log the data and account for potential values of 0. 
+
+
+https://www.biostars.org/p/108397/
+The fold-change is just their ratio. So if you have an RPKM of 5 in one sample and 2 in another, then the fold change is 5/2 =2.5 (or 2/5=0.4, depending on which sample you'd want things relative to). If wanted log2 foldchanges, then just log2 transform and subtract
+
+library(ggplot2)
+plot(rpkm$RPKM_WT[10000:15000],rpkm$RPKM_KOHC[10000:15000], abline(fitline))
+ggplot(heightweight, aes(x=ageYear, y=heightIn)) + geom_point(aes(color=sex))
+fitline <- lm(rpkm$RPKM_KO ~ rpkm$RPKM_WT)
+
+plot(p$mean_counts_WTHC[0:50000],p$RPKM_WTHC[0:50000],pch=16,xlab='count_WTHC',ylab='fpkm_WTHC',main='FPKMs vs. Counts')
+plot(p$mean_counts_KOHC,p$RPKM_KOHC,pch=16,xlab='count_WTHC',ylab='fpkm_WTHC',main='FPKMs vs. Counts')
+plot(p$mean_counts_KOHC[0:50000],p$RPKM_KOHC[0:50000],pch=16,xlab='count_WTHC',ylab='fpkm_WTHC',main='FPKMs vs. Counts')
+text(p$mean_counts_WTHC)
+text(p$mean_counts_WTHC[p$symbol =="Tnxb"], p$RPKM_WTHC[p$symbol =="Tnxb"], p$symbol[p$symbol =="Tnxb"])
