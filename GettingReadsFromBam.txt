@@ -1,0 +1,48 @@
+library(GenomicRanges)
+library(Rsamtools)
+library(GenomicAlignments)
+library(rtracklayer)
+
+#IT WORKS WITH THE GENE LIST, BUT NOT WITH THE PRED LIST
+#there is a problem in the original pred list - maybe the chromosome names do not match
+#follow one of the targets that get 0 hits and check if there is something wrong with the name
+#maybe I need to find all the chromosome names that exist in the bam files and then substract from the lists the targets that have other names
+#or find a better way to get gene positions based on their names
+
+neurgg<-read.csv("neuron_pred_position.csv")
+neurchromies<-paste("chr", neurgg[,2], sep="")
+neurlista <- GRanges(seqnames = neurchromies, ranges = IRanges(neurgg[,3], neurgg[,4]), strand = neurgg[,6])
+mcols(neurlista)<-as.character(neurgg$external_gene_name)
+nposit<-split(neurlista, strand(neurlista))[[1]]
+nposit_fl<-flank(nposit, 2000, start=TRUE)
+start(nposit)<-start(nposit_fl)
+nnegat<-split(neurlista, strand(neurlista))[[2]]
+nnegat_fl<-flank(nnegat, 2000, start=TRUE)
+end(nnegat)<-end(nnegat_fl)
+neurlista_fl<-c(nposit, nnegat)
+
+gliagg<-read.csv("glia_pred_position.csv")
+gliachromies<-paste("chr", gliagg[,2], sep="")
+glialista <- GRanges(seqnames = gliachromies, ranges = IRanges(gliagg[,3], gliagg[,4]), strand = gliagg[,6])
+mcols(glialista)<-as.character(gliagg$external_gene_name)
+gposit<-split(glialista, strand(glialista))[[1]]
+gposit_fl<-flank(gposit, 2000, start=TRUE)
+start(gposit)<-start(gposit_fl)
+gnegat<-split(glialista, strand(glialista))[[2]]
+gnegat_fl<-flank(gnegat, 2000, start=TRUE)
+end(gnegat)<-end(gnegat_fl)
+glialista_fl<-c(gposit, gnegat)
+
+bamy <- BamFileList(c("NEU-H3K9AC-1.bam", "NEU-H3K9AC-2.bam", "NON-H3K9AC-1.bam", "NON-H3K9AC-2.bam"))
+names(bamy) <- c("Ac_Neurons1","Ac_Neurons2", "Ac_Glia1", "Ac_Glia2")
+
+so1 <- summarizeOverlaps(features=neurlista_fl, reads=bamy, ignore.strand=TRUE, inter.feature=FALSE)
+readoutneur<-data.frame(mcols(neurlista_fl), as.character(seqnames(neurlista_fl)), start(neurlista_fl), end(neurlista_fl), assay(so1), row.names=NULL)
+write.csv(readoutneur, file="ac_PRED_neur_cds_FL.csv")
+
+so2 <- summarizeOverlaps(features=glialista_fl, reads=bamy, ignore.strand=TRUE, inter.feature=FALSE)
+readoutglia<-data.frame(mcols(glialista_fl), as.character(seqnames(glialista_fl)), start(glialista_fl), end(glialista_fl), assay(so2), row.names=NULL)
+write.csv(readoutglia, file="ac_PRED_glia_cds_FL.csv")
+
+export(glialista_fl, "glialista_pred_fl.bed")
+export(neurlista_fl, "neurlista_pred_fl.bed")
